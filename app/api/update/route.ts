@@ -1,5 +1,27 @@
 import { neon } from "@neondatabase/serverless";
 
+function getDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
 export async function GET(req: Request) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
@@ -12,13 +34,18 @@ export async function GET(req: Request) {
     const latitude = Number(searchParams.get("lat"));
     const longitude = Number(searchParams.get("lon"));
 
-    // Simple geo-fence logic (5km radius)
-    const centerLat = 30.5781;
-    const centerLon = 78.1234;
+    // ✅ YOUR REAL GEO CENTER
+    const centerLat = 30.756017940347842;
+    const centerLon = 78.35909315468292;
 
-    const geo_violation =
-      Math.abs(latitude - centerLat) > 0.05 ||
-      Math.abs(longitude - centerLon) > 0.05;
+    const distance = getDistanceKm(
+      latitude,
+      longitude,
+      centerLat,
+      centerLon
+    );
+
+    const geo_violation = distance > 3; // 3 km radius
 
     const sms_sent = accident;
 
