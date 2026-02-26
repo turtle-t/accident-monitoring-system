@@ -16,8 +16,14 @@ type DataType = {
   geo_violation: boolean;
 };
 
-const GEO_CENTER = { lat: 30.5781, lng: 78.1234 };
-const GEO_RADIUS = 5000;
+// ✅ YOUR OFFICIAL GEO CENTER
+const GEO_CENTER = {
+  lat: 30.756017940347842,
+  lng: 78.35909315468292,
+};
+
+// 3km radius (clean visual for demo)
+const GEO_RADIUS = 3000;
 
 export default function LocationPage() {
   const router = useRouter();
@@ -33,7 +39,8 @@ export default function LocationPage() {
     try {
       const res = await fetch("/api/latest");
       const json = await res.json();
-      if (json.ok) {
+
+      if (json.ok && json.data) {
         setData(json.data);
       } else {
         setError(true);
@@ -56,11 +63,11 @@ export default function LocationPage() {
     return <div className="p-6 text-red-500">Failed to load data</div>;
 
   if (!data)
-    return <div className="p-6">Loading vehicle location...</div>;
+    return <div className="p-6">Waiting for vehicle data...</div>;
 
   const vehiclePosition = {
-    lat: data.latitude,
-    lng: data.longitude,
+    lat: Number(data.latitude),
+    lng: Number(data.longitude),
   };
 
   const markerColor = data.accident
@@ -89,11 +96,11 @@ export default function LocationPage() {
       <div className="mb-4 bg-slate-900 p-4 rounded-xl border border-slate-700">
         <p>
           <strong>Latitude:</strong>{" "}
-          {data.latitude.toFixed(5)}
+          {vehiclePosition.lat.toFixed(6)}
         </p>
         <p>
           <strong>Longitude:</strong>{" "}
-          {data.longitude.toFixed(5)}
+          {vehiclePosition.lng.toFixed(6)}
         </p>
         <p>
           <strong>Status:</strong>{" "}
@@ -112,7 +119,7 @@ export default function LocationPage() {
           zoom={14}
           mapContainerStyle={{ width: "100%", height: "100%" }}
         >
-          {/* Geo-Fence */}
+          {/* Geo Fence Circle */}
           <Circle
             center={GEO_CENTER}
             radius={GEO_RADIUS}
