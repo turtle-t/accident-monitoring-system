@@ -1,18 +1,35 @@
-import { neon } from "@neondatabase/serverless";
+import { neon } from '@neondatabase/serverless';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-
-    const rows = await sql`
-      SELECT *
-      FROM accident_logs
-      ORDER BY id DESC;
+    
+    // Get ONLY the most recent record (LIMIT 1)
+    const result = await sql`
+      SELECT * FROM accident_logs 
+      ORDER BY timestamp DESC 
+      LIMIT 1
     `;
 
-    return Response.json({ ok: true, data: rows });
-  } catch (err) {
-    console.error("API /latest error:", err);
-    return Response.json({ ok: false }, { status: 500 });
+    if (result.length === 0) {
+      return NextResponse.json({ 
+        ok: true, 
+        data: null 
+      });
+    }
+
+    // Return the single object (not an array)
+    return NextResponse.json({ 
+      ok: true, 
+      data: result[0]  // Just the first/latest record
+    });
+
+  } catch (error) {
+    console.error('Latest API error:', error);
+    return NextResponse.json({ 
+      ok: false, 
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
