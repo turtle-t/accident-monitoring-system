@@ -5,10 +5,10 @@ export async function GET() {
   try {
     const sql = neon(process.env.DATABASE_URL!);
     
-    // Get ONLY the most recent record - remove the TypeScript generic syntax
+    // Fix: Use 'created_at' instead of 'timestamp' (your column name)
     const result = await sql`
       SELECT * FROM accident_logs 
-      ORDER BY timestamp DESC 
+      ORDER BY created_at DESC 
       LIMIT 1
     `;
 
@@ -22,7 +22,7 @@ export async function GET() {
     // Return the single object (not an array)
     return NextResponse.json({ 
       ok: true, 
-      data: result[0]  // Just the first/latest record
+      data: result[0]
     });
 
   } catch (error) {
@@ -34,5 +34,5 @@ export async function GET() {
   }
 }
 
-// Optional: Add revalidation if needed
-export const revalidate = 0; // Disable cache for real-time data
+// Disable cache for real-time data
+export const revalidate = 0;
